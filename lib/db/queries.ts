@@ -109,6 +109,7 @@ export async function saveMessages({ messages }: { messages: Array<Message> }) {
     return await db.insert(message).values(messages);
   } catch (error) {
     console.error('Failed to save messages in database', error);
+    console.error('Message data causing error:', JSON.stringify(messages, null, 2));
     throw error;
   }
 }

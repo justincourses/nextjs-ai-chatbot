@@ -70,10 +70,10 @@ export async function POST(request: Request) {
           selectedChatModel === 'chat-model-reasoning'
             ? []
             : [
-                'getWeather',
-                'createDocument',
-                'updateDocument',
-                'requestSuggestions',
+                // 'getWeather',
+                // 'createDocument',
+                // 'updateDocument',
+                // 'requestSuggestions',
               ],
         experimental_transform: smoothStream({ chunking: 'word' }),
         experimental_generateMessageId: generateUUID,
@@ -106,7 +106,7 @@ export async function POST(request: Request) {
                 }),
               });
             } catch (error) {
-              console.error('Failed to save chat');
+              console.error('Failed to save chat', error);
             }
           }
         },
@@ -120,7 +120,8 @@ export async function POST(request: Request) {
         sendReasoning: true,
       });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Stream error:', error);
       return 'Oops, an error occured!';
     },
   });

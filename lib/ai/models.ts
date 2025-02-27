@@ -1,5 +1,5 @@
-import { openai } from '@ai-sdk/openai';
-import { fireworks } from '@ai-sdk/fireworks';
+import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
+import { openai } from "@ai-sdk/openai";
 import {
   customProvider,
   extractReasoningMiddleware,
@@ -8,20 +8,30 @@ import {
 
 export const DEFAULT_CHAT_MODEL: string = 'chat-model-small';
 
+const OPENAI_COMPLETIONS_MODEL_SMALL = process.env.OPENAI_COMPLETIONS_MODEL_SMALL || 'deepseek-r1-distill-qwen-7b-250120';
+const OPENAI_COMPLETIONS_MODEL_LARGE = process.env.OPENAI_COMPLETIONS_MODEL_LARGE || 'deepseek-v3-241226';
+const OPENAI_COMPLETIONS_MODEL_REASONING = process.env.OPENAI_COMPLETIONS_MODEL_REASONING || 'deepseek-r1-250120';
+
+const provider = createOpenAICompatible({
+  name: "deepseek",
+  apiKey: process.env.OPENAI_COMPLETIONS_API_KEY || "",
+  baseURL: process.env.OPENAI_COMPLETIONS_BASE_URL || "",
+});
+
 export const myProvider = customProvider({
   languageModels: {
-    'chat-model-small': openai('gpt-4o-mini'),
-    'chat-model-large': openai('gpt-4o'),
-    'chat-model-reasoning': wrapLanguageModel({
-      model: fireworks('accounts/fireworks/models/deepseek-r1'),
-      middleware: extractReasoningMiddleware({ tagName: 'think' }),
+    "chat-model-small": provider(OPENAI_COMPLETIONS_MODEL_SMALL) as any,
+    "chat-model-large": provider(OPENAI_COMPLETIONS_MODEL_LARGE) as any,
+    "chat-model-reasoning": wrapLanguageModel({
+      model: provider(OPENAI_COMPLETIONS_MODEL_REASONING) as any,
+      middleware: extractReasoningMiddleware({ tagName: "think" }),
     }),
-    'title-model': openai('gpt-4-turbo'),
-    'artifact-model': openai('gpt-4o-mini'),
+    "title-model": provider(OPENAI_COMPLETIONS_MODEL_SMALL) as any,
+    "artifact-model": provider(OPENAI_COMPLETIONS_MODEL_LARGE) as any,
   },
   imageModels: {
-    'small-model': openai.image('dall-e-2'),
-    'large-model': openai.image('dall-e-3'),
+    "small-model": openai.image("dall-e-2"),
+    "large-model": openai.image("dall-e-3"),
   },
 });
 
