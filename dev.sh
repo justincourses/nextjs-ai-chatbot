@@ -1,3 +1,3 @@
 #!/bin/bash
 
-npm i && pnpm dev
+pnpm i && pnpm dev
