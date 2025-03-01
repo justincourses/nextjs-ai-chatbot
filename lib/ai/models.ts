@@ -8,10 +8,13 @@ import {
 
 export const DEFAULT_CHAT_MODEL: string = 'chat-model-small';
 
-const OPENAI_COMPLETIONS_MODEL_SMALL = process.env.OPENAI_COMPLETIONS_MODEL_SMALL || 'deepseek-r1-distill-qwen-7b-250120';
+const OPENAI_COMPLETIONS_MODEL_SMALL =
+  process.env.OPENAI_COMPLETIONS_MODEL_SMALL || "doubao-1-5-lite-32k-250115";
 const OPENAI_COMPLETIONS_MODEL_LARGE = process.env.OPENAI_COMPLETIONS_MODEL_LARGE || 'deepseek-v3-241226';
 const OPENAI_COMPLETIONS_MODEL_REASONING = process.env.OPENAI_COMPLETIONS_MODEL_REASONING || 'deepseek-r1-250120';
-
+const OPENAI_COMPLETIONS_MODEL_FUNCTION =
+  process.env.OPENAI_COMPLETIONS_MODEL_FUNCTION ||
+  "doubao-pro-32k-functioncall-preview";
 const provider = createOpenAICompatible({
   name: "deepseek",
   apiKey: process.env.OPENAI_COMPLETIONS_API_KEY || "",
@@ -22,6 +25,7 @@ export const myProvider = customProvider({
   languageModels: {
     "chat-model-small": provider(OPENAI_COMPLETIONS_MODEL_SMALL) as any,
     "chat-model-large": provider(OPENAI_COMPLETIONS_MODEL_LARGE) as any,
+    "chat-model-function": provider(OPENAI_COMPLETIONS_MODEL_FUNCTION) as any,
     "chat-model-reasoning": wrapLanguageModel({
       model: provider(OPENAI_COMPLETIONS_MODEL_REASONING) as any,
       middleware: extractReasoningMiddleware({ tagName: "think" }),
@@ -43,18 +47,25 @@ interface ChatModel {
 
 export const chatModels: Array<ChatModel> = [
   {
-    id: 'chat-model-small',
-    name: 'Small model',
-    description: 'Small model for fast, lightweight tasks',
+    id: "chat-model-small",
+    name: "Small model",
+    description: OPENAI_COMPLETIONS_MODEL_SMALL,
   },
   {
-    id: 'chat-model-large',
-    name: 'Large model',
-    description: 'Large model for complex, multi-step tasks',
+    id: "chat-model-large",
+    name: "Large model",
+    description: OPENAI_COMPLETIONS_MODEL_LARGE,
   },
   {
-    id: 'chat-model-reasoning',
-    name: 'Reasoning model',
-    description: 'Uses advanced reasoning',
+    id: "chat-model-reasoning",
+    name: "Reasoning model",
+    description: OPENAI_COMPLETIONS_MODEL_REASONING,
+  },
+  // Using function calling model
+  // URL: https://console.volcengine.com/ark/region:ark+cn-beijing/model/detail?Id=doubao-pro-32k
+  {
+    id: "chat-model-function",
+    name: "Function calling model",
+    description: OPENAI_COMPLETIONS_MODEL_FUNCTION,
   },
 ];
