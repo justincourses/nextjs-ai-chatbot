@@ -12,8 +12,11 @@ const OPENAI_COMPLETIONS_MODEL_SMALL =
   process.env.OPENAI_COMPLETIONS_MODEL_SMALL || "doubao-1-5-lite-32k-250115";
 const OPENAI_COMPLETIONS_MODEL_LARGE = process.env.OPENAI_COMPLETIONS_MODEL_LARGE || 'deepseek-v3-241226';
 const OPENAI_COMPLETIONS_MODEL_REASONING = process.env.OPENAI_COMPLETIONS_MODEL_REASONING || 'deepseek-r1-250120';
-// const OPENAI_COMPLETIONS_MODEL_FUNCTION = process.env.OPENAI_COMPLETIONS_MODEL_FUNCTION || "doubao-pro-32k-functioncall-preview";
-const OPENAI_COMPLETIONS_MODEL_FUNCTION = "gpt-4o-mini";
+const OPENAI_COMPLETIONS_MODEL_FUNCTION =
+  process.env.OPENAI_COMPLETIONS_MODEL_FUNCTION ||
+  "doubao-pro-32k-functioncall-241028";
+// const OPENAI_COMPLETIONS_MODEL_FUNCTION = "gpt-4o-mini";
+
 const provider = createOpenAICompatible({
   name: "deepseek",
   apiKey: process.env.OPENAI_COMPLETIONS_API_KEY || "",
@@ -24,8 +27,8 @@ export const myProvider = customProvider({
   languageModels: {
     "chat-model-small": provider(OPENAI_COMPLETIONS_MODEL_SMALL) as any,
     "chat-model-large": provider(OPENAI_COMPLETIONS_MODEL_LARGE) as any,
-    // "chat-model-function": provider(OPENAI_COMPLETIONS_MODEL_FUNCTION) as any,
-    "chat-model-function": openai(OPENAI_COMPLETIONS_MODEL_FUNCTION) as any,
+    "chat-model-function": provider(OPENAI_COMPLETIONS_MODEL_FUNCTION) as any,
+    // "chat-model-function": openai(OPENAI_COMPLETIONS_MODEL_FUNCTION) as any,
     "chat-model-reasoning": wrapLanguageModel({
       model: provider(OPENAI_COMPLETIONS_MODEL_REASONING) as any,
       middleware: extractReasoningMiddleware({ tagName: "think" }),
