@@ -20,6 +20,15 @@ export const Overview = () => {
           <MessageIcon size={32} />
         </p>
         <p>
+          This is an AI chatbot build on{" "}
+          <a target="_blank" href="https://justincourse.com">
+            JustinCourse
+          </a>
+          .
+          <br />
+          It is based on the Vercel AI SDK, Nextjs, and Postgres.
+        </p>
+        {/* <p>
           This is an{' '}
           <Link
             className="font-medium underline underline-offset-4"
@@ -45,7 +54,7 @@ export const Overview = () => {
             docs
           </Link>
           .
-        </p>
+        </p> */}
       </div>
     </motion.div>
   );
