@@ -25,6 +25,7 @@ import { createDocument } from '@/lib/ai/tools/create-document';
 import { updateDocument } from '@/lib/ai/tools/update-document';
 import { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
 import { getWeather } from '@/lib/ai/tools/get-weather';
+import { getCurrency } from '@/lib/ai/tools/get-currency';
 
 export const maxDuration = 60;
 
@@ -66,19 +67,20 @@ export async function POST(request: Request) {
         system: systemPrompt({ selectedChatModel }),
         messages,
         maxSteps: 5,
-        experimental_activeTools:
-          selectedChatModel === 'chat-model-function'
-            ? [
-              'getWeather',
-              'createDocument',
-              'updateDocument',
-              'requestSuggestions',
+        experimental_activeTools: !["chat-model-tiny"].includes(selectedChatModel)
+          ? [
+              "getWeather",
+              "getCurrency",
+              "createDocument",
+              "updateDocument",
+              "requestSuggestions",
             ]
-            : [],
-        experimental_transform: smoothStream({ chunking: 'word' }),
+          : [],
+        experimental_transform: smoothStream({ chunking: "word" }),
         experimental_generateMessageId: generateUUID,
         tools: {
           getWeather,
+          getCurrency,
           createDocument: createDocument({ session, dataStream }),
           updateDocument: updateDocument({ session, dataStream }),
           requestSuggestions: requestSuggestions({
@@ -106,13 +108,13 @@ export async function POST(request: Request) {
                 }),
               });
             } catch (error) {
-              console.error('Failed to save chat', error);
+              console.error("Failed to save chat", error);
             }
           }
         },
         experimental_telemetry: {
           isEnabled: true,
-          functionId: 'stream-text',
+          functionId: "stream-text",
         },
       });
 

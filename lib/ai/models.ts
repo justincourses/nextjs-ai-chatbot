@@ -6,8 +6,11 @@ import {
   wrapLanguageModel,
 } from 'ai';
 
-export const DEFAULT_CHAT_MODEL: string = 'chat-model-small';
+export const DEFAULT_CHAT_MODEL: string = "chat-model-large";
 
+const OPENAI_COMPLETIONS_MODEL_TINY =
+  process.env.OPENAI_COMPLETIONS_MODEL_TINY ||
+  "deepseek-r1-distill-qwen-7b-250120";
 const OPENAI_COMPLETIONS_MODEL_SMALL =
   process.env.OPENAI_COMPLETIONS_MODEL_SMALL || "doubao-1-5-lite-32k-250115";
 const OPENAI_COMPLETIONS_MODEL_LARGE = process.env.OPENAI_COMPLETIONS_MODEL_LARGE || 'deepseek-v3-241226';
@@ -25,6 +28,7 @@ const provider = createOpenAICompatible({
 
 export const myProvider = customProvider({
   languageModels: {
+    "chat-model-tiny": provider(OPENAI_COMPLETIONS_MODEL_TINY) as any,
     "chat-model-small": provider(OPENAI_COMPLETIONS_MODEL_SMALL) as any,
     "chat-model-large": provider(OPENAI_COMPLETIONS_MODEL_LARGE) as any,
     "chat-model-function": provider(OPENAI_COMPLETIONS_MODEL_FUNCTION) as any,
@@ -49,6 +53,11 @@ interface ChatModel {
 }
 
 export const chatModels: Array<ChatModel> = [
+  {
+    id: "chat-model-tiny",
+    name: "Tiny model",
+    description: `Model: ${OPENAI_COMPLETIONS_MODEL_TINY}`,
+  },
   {
     id: "chat-model-small",
     name: "Small model",
