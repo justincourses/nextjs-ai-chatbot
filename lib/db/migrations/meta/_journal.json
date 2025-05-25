@@ -8,6 +8,13 @@
       "when": 1748146937679,
       "tag": "0000_many_invaders",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1748147465693,
+      "tag": "0001_bright_millenium_guard",
+      "breakpoints": true
     }
   ]
 }
