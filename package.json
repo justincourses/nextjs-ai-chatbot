@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev --turbo",
     "compile": "next build",
-    "build": "pnpm compile",
+    "build": "pnpm db:update && pnpm compile",
     "start": "next start",
     "lint": "next lint && biome lint --write --unsafe",
     "lint:fix": "next lint --fix && biome lint --write --unsafe",
