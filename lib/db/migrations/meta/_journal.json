@@ -50,6 +50,13 @@
       "when": 1748142148926,
       "tag": "0006_easy_magus",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1748144965308,
+      "tag": "0007_green_star_brand",
+      "breakpoints": true
     }
   ]
 }

@@ -7,6 +7,7 @@ import GitHub from 'next-auth/providers/github';
 
 import { getUser } from '@/lib/db/queries';
 // import { db } from '@/lib/db/db';
+// import { users, accounts, sessions, verificationTokens } from '@/lib/db/schema';
 
 import { authConfig } from './auth.config';
 
@@ -16,8 +17,13 @@ interface ExtendedSession extends Session {
 
 const nextAuth = NextAuth({
   ...authConfig,
-  // Temporarily disable adapter until database migration is complete
-  // adapter: DrizzleAdapter(db),
+  // Temporarily disable adapter until we migrate the database
+  // adapter: DrizzleAdapter(db, {
+  //   usersTable: users,
+  //   accountsTable: accounts,
+  //   sessionsTable: sessions,
+  //   verificationTokensTable: verificationTokens,
+  // }),
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,

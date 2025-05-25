@@ -12,66 +12,70 @@ import {
   integer,
 } from 'drizzle-orm/pg-core';
 
-export const user = pgTable('User', {
-  id: uuid('id').primaryKey().notNull().defaultRandom(),
-  name: varchar('name', { length: 255 }),
-  email: varchar('email', { length: 64 }).notNull(),
+// NextAuth.js Tables
+export const users = pgTable('user', {
+  id: text('id').notNull().primaryKey(),
+  name: text('name'),
+  email: text('email').notNull(),
   emailVerified: timestamp('emailVerified', { mode: 'date' }),
   image: text('image'),
-  password: varchar('password', { length: 64 }),
+  password: varchar('password', { length: 64 }), // Custom field for credentials
 });
 
-export type User = InferSelectModel<typeof user>;
-
-export const account = pgTable(
-  'Account',
+export const accounts = pgTable(
+  'account',
   {
-    userId: uuid('userId')
+    userId: text('userId')
       .notNull()
-      .references(() => user.id, { onDelete: 'cascade' }),
-    type: varchar('type', { length: 255 }).notNull(),
-    provider: varchar('provider', { length: 255 }).notNull(),
-    providerAccountId: varchar('providerAccountId', { length: 255 }).notNull(),
+      .references(() => users.id, { onDelete: 'cascade' }),
+    type: text('type').notNull(),
+    provider: text('provider').notNull(),
+    providerAccountId: text('providerAccountId').notNull(),
     refresh_token: text('refresh_token'),
     access_token: text('access_token'),
     expires_at: integer('expires_at'),
-    token_type: varchar('token_type', { length: 255 }),
-    scope: varchar('scope', { length: 255 }),
+    token_type: text('token_type'),
+    scope: text('scope'),
     id_token: text('id_token'),
-    session_state: varchar('session_state', { length: 255 }),
+    session_state: text('session_state'),
   },
-  (table) => ({
+  (account) => ({
     compoundKey: primaryKey({
-      columns: [table.provider, table.providerAccountId],
+      columns: [account.provider, account.providerAccountId],
     }),
   })
 );
 
-export type Account = InferSelectModel<typeof account>;
-
-export const session = pgTable('Session', {
-  sessionToken: varchar('sessionToken', { length: 255 }).notNull().primaryKey(),
-  userId: uuid('userId')
+export const sessions = pgTable('session', {
+  sessionToken: text('sessionToken').notNull().primaryKey(),
+  userId: text('userId')
     .notNull()
-    .references(() => user.id, { onDelete: 'cascade' }),
+    .references(() => users.id, { onDelete: 'cascade' }),
   expires: timestamp('expires', { mode: 'date' }).notNull(),
 });
 
-export type Session = InferSelectModel<typeof session>;
-
-export const verificationToken = pgTable(
-  'VerificationToken',
+export const verificationTokens = pgTable(
+  'verificationToken',
   {
-    identifier: varchar('identifier', { length: 255 }).notNull(),
-    token: varchar('token', { length: 255 }).notNull(),
+    identifier: text('identifier').notNull(),
+    token: text('token').notNull(),
     expires: timestamp('expires', { mode: 'date' }).notNull(),
   },
-  (table) => ({
-    compoundKey: primaryKey({ columns: [table.identifier, table.token] }),
+  (vt) => ({
+    compoundKey: primaryKey({ columns: [vt.identifier, vt.token] }),
   })
 );
 
-export type VerificationToken = InferSelectModel<typeof verificationToken>;
+// Legacy exports for backward compatibility
+export const user = users;
+export const account = accounts;
+export const session = sessions;
+export const verificationToken = verificationTokens;
+
+export type User = InferSelectModel<typeof users>;
+export type Account = InferSelectModel<typeof accounts>;
+export type Session = InferSelectModel<typeof sessions>;
+export type VerificationToken = InferSelectModel<typeof verificationTokens>;
 
 export const chat = pgTable('Chat', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),

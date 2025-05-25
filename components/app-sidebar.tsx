@@ -72,7 +72,6 @@ export function AppSidebar({ user }: { user: User | undefined }) {
             <SidebarMenuItem>
               <SidebarMenuButton
                 onClick={() => {
-                  console.log('Sign In clicked!'); // Debug log
                   setOpenMobile(false);
                   router.push('/login');
                 }}
