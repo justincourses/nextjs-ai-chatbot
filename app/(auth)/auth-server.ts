@@ -1,13 +1,12 @@
 import { compare } from 'bcrypt-ts';
 import NextAuth, { type User, type Session } from 'next-auth';
-// import { DrizzleAdapter } from '@auth/drizzle-adapter';
 import Credentials from 'next-auth/providers/credentials';
 import Google from 'next-auth/providers/google';
 import GitHub from 'next-auth/providers/github';
 
-import { getUser } from '@/lib/db/queries';
-// import { db } from '@/lib/db/db';
-// import { users, accounts, sessions, verificationTokens } from '@/lib/db/schema';
+import { getUser, getUserById } from '@/lib/db/queries';
+import { db } from '@/lib/db/db';
+import { users } from '@/lib/db/schema';
 
 import { authConfig } from './auth.config';
 
@@ -15,9 +14,33 @@ interface ExtendedSession extends Session {
   user: User;
 }
 
+// Helper function to create OAuth user in database
+async function createOAuthUser(user: any) {
+  try {
+    // Check if user already exists
+    const existingUser = await getUserById(user.id);
+    if (existingUser) {
+      return existingUser;
+    }
+
+    // Create new user
+    await db.insert(users).values({
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      image: user.image,
+    });
+
+    return await getUserById(user.id);
+  } catch (error) {
+    console.error('Failed to create OAuth user:', error);
+    return null;
+  }
+}
+
 const nextAuth = NextAuth({
   ...authConfig,
-  // Temporarily disable adapter until we migrate the database
+  // Temporarily disable adapter to restore functionality
   // adapter: DrizzleAdapter(db, {
   //   usersTable: users,
   //   accountsTable: accounts,
@@ -46,9 +69,14 @@ const nextAuth = NextAuth({
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       if (user) {
         token.id = user.id;
+
+        // If this is an OAuth login, ensure user exists in database
+        if (account && (account.provider === 'google' || account.provider === 'github')) {
+          await createOAuthUser(user);
+        }
       }
       return token;
     },
