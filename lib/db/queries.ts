@@ -35,6 +35,16 @@ export async function getUser(email: string): Promise<Array<User>> {
   }
 }
 
+export async function getUserById(id: string): Promise<User | null> {
+  try {
+    const [foundUser] = await db.select().from(user).where(eq(user.id, id));
+    return foundUser || null;
+  } catch (error) {
+    console.error('Failed to get user by id from database');
+    throw error;
+  }
+}
+
 export async function createUser(email: string, password: string) {
   const salt = genSaltSync(10);
   const hash = hashSync(password, salt);

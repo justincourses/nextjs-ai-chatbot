@@ -2,7 +2,7 @@
 import { ChevronUp } from 'lucide-react';
 import Image from 'next/image';
 import type { User } from 'next-auth';
-import { signOut } from 'next-auth/react';
+import { SignOutForm } from '@/components/sign-out-form';
 import { useTheme } from 'next-themes';
 
 import {
@@ -50,17 +50,7 @@ export function SidebarUserNav({ user }: { user: User }) {
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <button
-                type="button"
-                className="w-full cursor-pointer"
-                onClick={() => {
-                  signOut({
-                    redirectTo: '/',
-                  });
-                }}
-              >
-                Sign out
-              </button>
+              <SignOutForm />
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

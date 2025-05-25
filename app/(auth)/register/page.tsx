@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 
 import { AuthForm } from '@/components/auth-form';
 import { SubmitButton } from '@/components/submit-button';
+import { OAuthButtons } from '@/components/oauth-buttons';
 
 import { register, type RegisterActionState } from '../actions';
 
@@ -50,6 +51,9 @@ export default function Page() {
           <p className="text-sm text-gray-500 dark:text-zinc-400">
             Create an account with your email and password
           </p>
+        </div>
+        <div className="px-4 sm:px-16">
+          <OAuthButtons />
         </div>
         <AuthForm action={handleSubmit} defaultEmail={email}>
           <SubmitButton isSuccessful={isSuccessful}>Sign Up</SubmitButton>

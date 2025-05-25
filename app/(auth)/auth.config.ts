@@ -12,27 +12,32 @@ export const authConfig = {
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
-      const isOnChat = nextUrl.pathname.startsWith('/');
-      const isOnRegister = nextUrl.pathname.startsWith('/register');
-      const isOnLogin = nextUrl.pathname.startsWith('/login');
+      const { pathname } = nextUrl;
 
-      if (isLoggedIn && (isOnLogin || isOnRegister)) {
-        return Response.redirect(new URL('/', nextUrl as unknown as URL));
+      console.log('Middleware check:', { pathname, isLoggedIn }); // Debug log
+
+      // Public routes that don't require authentication
+      const publicRoutes = ['/login', '/register'];
+      const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
+
+      // API routes - let them handle their own auth
+      if (pathname.startsWith('/api/')) {
+        return true;
       }
 
-      if (isOnRegister || isOnLogin) {
-        return true; // Always allow access to register and login pages
+      // If user is logged in and trying to access auth pages, redirect to home
+      if (isLoggedIn && isPublicRoute) {
+        console.log('Logged in user accessing auth page, redirecting to home');
+        return Response.redirect(new URL('/', nextUrl));
       }
 
-      if (isOnChat) {
-        if (isLoggedIn) return true;
-        return false; // Redirect unauthenticated users to login page
+      // If user is not logged in and trying to access protected routes, redirect to login
+      if (!isLoggedIn && !isPublicRoute) {
+        console.log('Unauthenticated user accessing protected route, redirecting to login');
+        return Response.redirect(new URL('/login', nextUrl));
       }
 
-      if (isLoggedIn) {
-        return Response.redirect(new URL('/', nextUrl as unknown as URL));
-      }
-
+      // Allow access
       return true;
     },
   },
