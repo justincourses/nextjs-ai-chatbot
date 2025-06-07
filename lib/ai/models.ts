@@ -6,7 +6,7 @@ import {
   wrapLanguageModel,
 } from 'ai';
 
-export const DEFAULT_CHAT_MODEL: string = "chat-model-reasoning";
+export const DEFAULT_CHAT_MODEL: string = "chat-model-small";
 
 const OPENAI_COMPLETIONS_MODEL_TINY =
   process.env.OPENAI_COMPLETIONS_MODEL_TINY ||
@@ -54,11 +54,11 @@ interface ChatModel {
 }
 
 export const chatModels: Array<ChatModel> = [
-  {
-    id: "chat-model-tiny",
-    name: "Tiny model",
-    description: `Model: ${OPENAI_COMPLETIONS_MODEL_TINY}`,
-  },
+  // {
+  //   id: "chat-model-tiny",
+  //   name: "Tiny model",
+  //   description: `Model: ${OPENAI_COMPLETIONS_MODEL_TINY}`,
+  // },
   {
     id: "chat-model-small",
     name: "Small model",
@@ -76,9 +76,9 @@ export const chatModels: Array<ChatModel> = [
   },
   // Using function calling model
   // URL: https://console.volcengine.com/ark/region:ark+cn-beijing/model/detail?Id=doubao-pro-32k
-  {
-    id: "chat-model-function",
-    name: "Function calling model",
-    description: `Model: ${OPENAI_COMPLETIONS_MODEL_FUNCTION}`,
-  },
+  // {
+  //   id: "chat-model-function",
+  //   name: "Function calling model",
+  //   description: `Model: ${OPENAI_COMPLETIONS_MODEL_FUNCTION}`,
+  // },
 ];

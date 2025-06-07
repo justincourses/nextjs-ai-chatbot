@@ -67,7 +67,7 @@ export async function POST(request: Request) {
         system: systemPrompt({ selectedChatModel }),
         messages,
         maxSteps: 5,
-        experimental_activeTools: !["chat-model-tiny"].includes(selectedChatModel)
+        experimental_activeTools: ["chat-model-reasoning"].includes(selectedChatModel)
           ? [
               "getWeather",
               "getCurrency",
