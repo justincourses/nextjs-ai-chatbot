@@ -10,19 +10,19 @@ export const DEFAULT_CHAT_MODEL: string = "chat-model-large";
 
 const OPENAI_COMPLETIONS_MODEL_TINY =
   process.env.OPENAI_COMPLETIONS_MODEL_TINY ||
-  "deepseek-r1-distill-qwen-7b-250120";
+  "deepseek-ai/DeepSeek-R1-0528-Qwen3-8B";
 const OPENAI_COMPLETIONS_MODEL_SMALL =
-  process.env.OPENAI_COMPLETIONS_MODEL_SMALL || "doubao-1-5-lite-32k-250115";
+  process.env.OPENAI_COMPLETIONS_MODEL_SMALL || "deepseek-ai/DeepSeek-R1-0528-Qwen3-8B";
 const OPENAI_COMPLETIONS_MODEL_LARGE =
-  process.env.OPENAI_COMPLETIONS_MODEL_LARGE || "deepseek-v3-250324";
-const OPENAI_COMPLETIONS_MODEL_REASONING = process.env.OPENAI_COMPLETIONS_MODEL_REASONING || 'deepseek-r1-250120';
+  process.env.OPENAI_COMPLETIONS_MODEL_LARGE || "deepseek-ai/DeepSeek-V3";
+const OPENAI_COMPLETIONS_MODEL_REASONING = process.env.OPENAI_COMPLETIONS_MODEL_REASONING || 'deepseek-ai/DeepSeek-R1';
 const OPENAI_COMPLETIONS_MODEL_FUNCTION =
   process.env.OPENAI_COMPLETIONS_MODEL_FUNCTION ||
-  "doubao-pro-32k-functioncall-241028";
-// const OPENAI_COMPLETIONS_MODEL_FUNCTION = "gpt-4o-mini";
+  "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B";
+
 
 const provider = createOpenAICompatible({
-  name: "deepseek",
+  name: "llm",
   apiKey: process.env.OPENAI_COMPLETIONS_API_KEY || "",
   baseURL: process.env.OPENAI_COMPLETIONS_BASE_URL || "",
 });
