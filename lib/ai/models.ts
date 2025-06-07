@@ -6,7 +6,7 @@ import {
   wrapLanguageModel,
 } from 'ai';
 
-export const DEFAULT_CHAT_MODEL: string = "chat-model-large";
+export const DEFAULT_CHAT_MODEL: string = "chat-model-reasoning";
 
 const OPENAI_COMPLETIONS_MODEL_TINY =
   process.env.OPENAI_COMPLETIONS_MODEL_TINY ||
