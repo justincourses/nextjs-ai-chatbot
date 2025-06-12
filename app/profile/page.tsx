@@ -4,6 +4,8 @@ import { getUser } from '@/lib/db/queries';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
+import { HistoryTab } from '@/components/profile/history-tab';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default async function ProfilePage() {
   const session = await auth();
@@ -32,51 +34,67 @@ export default async function ProfilePage() {
             Back to Home
           </Link>
         </div>
-        <div className="bg-card rounded-lg shadow p-6">
-          <div className="space-y-6">
-            <div className="flex items-center gap-4">
-              {user.image ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={user.image}
-                  alt={user.name || 'Profile'}
-                  width={96}
-                  height={96}
-                  className="rounded-full"
-                />
-              ) : (
-                <div className="size-24 rounded-full bg-muted flex items-center justify-center">
-                  <span className="text-2xl">
-                    {(user.name || user.email).charAt(0).toUpperCase()}
-                  </span>
-                </div>
-              )}
-              <div>
-                <h2 className="text-xl font-semibold">{user.name || 'No name set'}</h2>
-                <p className="text-muted-foreground">{user.email}</p>
-              </div>
-            </div>
 
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground">Email</h3>
-                <p className="mt-1">{user.email}</p>
+        <Tabs defaultValue="profile" className="space-y-6">
+          <TabsList>
+            <TabsTrigger value="profile">Profile</TabsTrigger>
+            <TabsTrigger value="history">History</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="profile">
+            <div className="bg-card rounded-lg shadow p-6">
+              <div className="space-y-6">
+                <div className="flex items-center gap-4">
+                  {user.image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={user.image}
+                      alt={user.name || 'Profile'}
+                      width={96}
+                      height={96}
+                      className="rounded-full"
+                    />
+                  ) : (
+                    <div className="size-24 rounded-full bg-muted flex items-center justify-center">
+                      <span className="text-2xl">
+                        {(user.name || user.email).charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+                  <div>
+                    <h2 className="text-xl font-semibold">{user.name || 'No name set'}</h2>
+                    <p className="text-muted-foreground">{user.email}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground">Email</h3>
+                    <p className="mt-1">{user.email}</p>
+                  </div>
+                  {user.name && (
+                    <div>
+                      <h3 className="text-sm font-medium text-muted-foreground">Name</h3>
+                      <p className="mt-1">{user.name}</p>
+                    </div>
+                  )}
+                  {user.emailVerified && (
+                    <div>
+                      <h3 className="text-sm font-medium text-muted-foreground">Email Verified</h3>
+                      <p className="mt-1">{new Date(user.emailVerified).toLocaleDateString()}</p>
+                    </div>
+                  )}
+                </div>
               </div>
-              {user.name && (
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground">Name</h3>
-                  <p className="mt-1">{user.name}</p>
-                </div>
-              )}
-              {user.emailVerified && (
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground">Email Verified</h3>
-                  <p className="mt-1">{new Date(user.emailVerified).toLocaleDateString()}</p>
-                </div>
-              )}
             </div>
-          </div>
-        </div>
+          </TabsContent>
+
+          <TabsContent value="history">
+            <div className="bg-card rounded-lg shadow p-6">
+              <HistoryTab />
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
