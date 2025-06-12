@@ -1,10 +1,10 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@/app/(auth)/auth-server';
 import { getUser } from '@/lib/db/queries';
-import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { HistoryTab } from '@/components/profile/history-tab';
+import { ProfileEditor } from '@/components/profile/profile-editor';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default async function ProfilePage() {
@@ -44,40 +44,16 @@ export default async function ProfilePage() {
           <TabsContent value="profile">
             <div className="bg-card rounded-lg shadow p-6">
               <div className="space-y-6">
-                <div className="flex items-center gap-4">
-                  {user.image ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={user.image}
-                      alt={user.name || 'Profile'}
-                      width={96}
-                      height={96}
-                      className="rounded-full"
-                    />
-                  ) : (
-                    <div className="size-24 rounded-full bg-muted flex items-center justify-center">
-                      <span className="text-2xl">
-                        {(user.name || user.email).charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                  )}
-                  <div>
-                    <h2 className="text-xl font-semibold">{user.name || 'No name set'}</h2>
-                    <p className="text-muted-foreground">{user.email}</p>
-                  </div>
-                </div>
+                <ProfileEditor
+                  initialName={user.name}
+                  initialImage={user.image}
+                />
 
                 <div className="space-y-4">
                   <div>
                     <h3 className="text-sm font-medium text-muted-foreground">Email</h3>
                     <p className="mt-1">{user.email}</p>
                   </div>
-                  {user.name && (
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground">Name</h3>
-                      <p className="mt-1">{user.name}</p>
-                    </div>
-                  )}
                   {user.emailVerified && (
                     <div>
                       <h3 className="text-sm font-medium text-muted-foreground">Email Verified</h3>
