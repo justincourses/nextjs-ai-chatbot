@@ -36,7 +36,8 @@ export default async function ProfilePage() {
           <div className="space-y-6">
             <div className="flex items-center gap-4">
               {user.image ? (
-                <Image
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
                   src={user.image}
                   alt={user.name || 'Profile'}
                   width={96}
