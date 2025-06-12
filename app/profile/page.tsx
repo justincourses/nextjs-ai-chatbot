@@ -1,8 +1,6 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@/app/(auth)/auth-server';
-import { db } from '@/lib/db/db';
-import { users } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { getUser } from '@/lib/db/queries';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
@@ -14,16 +12,8 @@ export default async function ProfilePage() {
     redirect('/');
   }
 
-  const user = await db.query.users.findFirst({
-    where: eq(users.email, session.user.email),
-    columns: {
-      id: true,
-      name: true,
-      email: true,
-      image: true,
-      emailVerified: true,
-    },
-  });
+  const users = await getUser(session.user.email);
+  const user = users[0];
 
   if (!user) {
     redirect('/');
