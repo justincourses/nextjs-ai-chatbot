@@ -1,6 +1,7 @@
 'use client';
 import { ChevronUp } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import type { User } from 'next-auth';
 import { SignOutForm } from '@/components/sign-out-form';
 import { useTheme } from 'next-themes';
@@ -42,6 +43,11 @@ export function SidebarUserNav({ user }: { user: User }) {
             side="top"
             className="w-[--radix-popper-anchor-width]"
           >
+            <DropdownMenuItem asChild>
+              <Link href="/profile" className="cursor-pointer">
+                Profile
+              </Link>
+            </DropdownMenuItem>
             <DropdownMenuItem
               className="cursor-pointer"
               onSelect={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
