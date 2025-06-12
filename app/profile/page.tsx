@@ -4,6 +4,8 @@ import { db } from '@/lib/db/db';
 import { users } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import Image from 'next/image';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 
 export default async function ProfilePage() {
   const session = await auth();
@@ -30,7 +32,16 @@ export default async function ProfilePage() {
   return (
     <div className="container mx-auto py-8">
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl font-bold mb-6">Profile</h1>
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold">Profile</h1>
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="size-4" />
+            Back to Home
+          </Link>
+        </div>
         <div className="bg-card rounded-lg shadow p-6">
           <div className="space-y-6">
             <div className="flex items-center gap-4">
