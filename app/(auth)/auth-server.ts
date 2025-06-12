@@ -88,7 +88,14 @@ const nextAuth = NextAuth({
       token: any;
     }) {
       if (session.user && token.id) {
-        session.user.id = token.id as string;
+        // Get complete user data from database
+        const dbUser = await getUserById(token.id);
+        if (dbUser) {
+          session.user = {
+            ...session.user,
+            ...dbUser,
+          };
+        }
       }
 
       return session;

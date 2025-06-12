@@ -1,6 +1,5 @@
 'use client';
 import { ChevronUp } from 'lucide-react';
-import Image from 'next/image';
 import Link from 'next/link';
 import type { User } from 'next-auth';
 import { SignOutForm } from '@/components/sign-out-form';
@@ -18,9 +17,22 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import {
+  Avatar,
+  AvatarImage,
+  AvatarFallback,
+} from '@/components/ui/avatar';
 
 export function SidebarUserNav({ user }: { user: User }) {
   const { setTheme, theme } = useTheme();
+  const avatarUrl = user.image || `https://avatar.vercel.sh/${user.email}`;
+  const initials = user.name
+    ? user.name
+        .split(' ')
+        .map((n) => n[0])
+        .join('')
+        .toUpperCase()
+    : user.email?.[0].toUpperCase() || 'U';
 
   return (
     <SidebarMenu>
@@ -28,13 +40,10 @@ export function SidebarUserNav({ user }: { user: User }) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent bg-background data-[state=open]:text-sidebar-accent-foreground h-10">
-              <Image
-                src={`https://avatar.vercel.sh/${user.email}`}
-                alt={user.email ?? 'User Avatar'}
-                width={24}
-                height={24}
-                className="rounded-full"
-              />
+              <Avatar className="size-6">
+                <AvatarImage src={avatarUrl} alt={user.name || user.email || 'User Avatar'} />
+                <AvatarFallback>{initials}</AvatarFallback>
+              </Avatar>
               <span className="truncate">{user?.email}</span>
               <ChevronUp className="ml-auto" />
             </SidebarMenuButton>

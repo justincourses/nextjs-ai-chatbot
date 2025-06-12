@@ -16,6 +16,11 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Avatar,
+  AvatarImage,
+  AvatarFallback,
+} from '@/components/ui/avatar';
 
 interface ProfileEditorProps {
   initialName: string | null;
@@ -29,6 +34,14 @@ export function ProfileEditor({ initialName, initialImage }: ProfileEditorProps)
   const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
   const [imageUrl, setImageUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  const initials = name
+    ? name
+        .split(' ')
+        .map((n) => n[0])
+        .join('')
+        .toUpperCase()
+    : 'U';
 
   const handleNameUpdate = async () => {
     if (name === initialName) {
@@ -132,17 +145,16 @@ export function ProfileEditor({ initialName, initialImage }: ProfileEditorProps)
     <div className="space-y-4">
       <div className="flex items-center gap-4">
         <div
-          className="relative group"
+          className="relative group cursor-pointer"
           onClick={() => setIsImageDialogOpen(true)}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={image || `https://avatar.vercel.sh/${initialName || "user"}`}
-            alt={name || "Profile"}
-            width={96}
-            height={96}
-            className="rounded-full cursor-pointer"
-          />
+          <Avatar className="size-24">
+            <AvatarImage
+              src={image || `https://avatar.vercel.sh/${initialName || "user"}`}
+              alt={name || "Profile"}
+            />
+            <AvatarFallback className="text-lg">{initials}</AvatarFallback>
+          </Avatar>
           <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
             <Pencil className="size-6 text-white" />
           </div>
