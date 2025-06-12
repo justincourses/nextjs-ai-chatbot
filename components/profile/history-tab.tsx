@@ -31,29 +31,32 @@ export function HistoryTab() {
   const handleDelete = async () => {
     if (selectedChats.length === 0) return;
 
-    const deletePromise = fetch('/api/profile/history', {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ ids: selectedChats }),
-    });
+    try {
+      const response = await fetch('/api/profile/history', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ids: selectedChats }),
+      });
 
-    toast.promise(deletePromise, {
-      loading: 'Deleting chats...',
-      success: () => {
-        mutate((history) => {
-          if (history) {
-            return history.filter((h) => !selectedChats.includes(h.id));
-          }
-        });
-        setSelectedChats([]);
-        return 'Chats deleted successfully';
-      },
-      error: 'Failed to delete chats',
-    });
+      const data = await response.json();
 
-    setShowDeleteDialog(false);
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to delete chats');
+      }
+
+      toast.success(`Successfully deleted ${data.data.deletedCount} chats`);
+      mutate((history) => {
+        if (history) {
+          return history.filter((h) => !selectedChats.includes(h.id));
+        }
+      });
+      setSelectedChats([]);
+      setShowDeleteDialog(false);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to delete chats');
+    }
   };
 
   if (isLoading) {

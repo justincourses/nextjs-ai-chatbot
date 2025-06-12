@@ -8,23 +8,38 @@ export async function DELETE(request: Request) {
   try {
     const session = await auth();
     if (!session?.user?.email) {
-      return new NextResponse('Unauthorized', { status: 401 });
+      return NextResponse.json({
+        success: false,
+        error: 'Unauthorized',
+      }, { status: 401 });
     }
 
     const { ids } = await request.json();
     if (!Array.isArray(ids) || ids.length === 0) {
-      return new NextResponse('Invalid request', { status: 400 });
+      return NextResponse.json({
+        success: false,
+        error: 'Invalid request: ids must be a non-empty array',
+      }, { status: 400 });
     }
 
     // Delete messages first (due to foreign key constraint)
     await db.delete(message).where(inArray(message.chatId, ids));
 
     // Then delete chats
-    await db.delete(chat).where(inArray(chat.id, ids));
+    const deletedChats = await db.delete(chat).where(inArray(chat.id, ids)).returning();
 
-    return new NextResponse('Chats deleted successfully', { status: 200 });
+    return NextResponse.json({
+      success: true,
+      data: {
+        deletedCount: deletedChats.length,
+        deletedIds: ids,
+      },
+    });
   } catch (error) {
     console.error('Error deleting chats:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    return NextResponse.json({
+      success: false,
+      error: 'Internal Server Error',
+    }, { status: 500 });
   }
 }
