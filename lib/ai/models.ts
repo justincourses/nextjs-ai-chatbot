@@ -8,17 +8,10 @@ import {
 
 export const DEFAULT_CHAT_MODEL: string = "chat-model-small";
 
-const OPENAI_COMPLETIONS_MODEL_TINY =
-  process.env.OPENAI_COMPLETIONS_MODEL_TINY ||
-  "deepseek-ai/DeepSeek-R1-0528-Qwen3-8B";
-const OPENAI_COMPLETIONS_MODEL_SMALL =
-  process.env.OPENAI_COMPLETIONS_MODEL_SMALL || "deepseek-ai/DeepSeek-R1-0528-Qwen3-8B";
-const OPENAI_COMPLETIONS_MODEL_LARGE =
-  process.env.OPENAI_COMPLETIONS_MODEL_LARGE || "deepseek-ai/DeepSeek-V3";
-const OPENAI_COMPLETIONS_MODEL_REASONING = process.env.OPENAI_COMPLETIONS_MODEL_REASONING || 'deepseek-ai/DeepSeek-R1';
-const OPENAI_COMPLETIONS_MODEL_FUNCTION =
-  process.env.OPENAI_COMPLETIONS_MODEL_FUNCTION ||
-  "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B";
+// const OPENAI_COMPLETIONS_MODEL_SMALL = "deepseek-ai/DeepSeek-R1-0528-Qwen3-8B";
+const OPENAI_COMPLETIONS_MODEL_SMALL = "Qwen/Qwen3-8B";
+const OPENAI_COMPLETIONS_MODEL_LARGE = "deepseek-ai/DeepSeek-V3";
+const OPENAI_COMPLETIONS_MODEL_REASONING = 'deepseek-ai/DeepSeek-R1';
 
 
 const provider = createOpenAICompatible({
@@ -29,10 +22,10 @@ const provider = createOpenAICompatible({
 
 export const myProvider = customProvider({
   languageModels: {
-    "chat-model-tiny": provider(OPENAI_COMPLETIONS_MODEL_TINY) as any,
+    // "chat-model-tiny": provider(OPENAI_COMPLETIONS_MODEL_TINY) as any,
     "chat-model-small": provider(OPENAI_COMPLETIONS_MODEL_SMALL) as any,
     "chat-model-large": provider(OPENAI_COMPLETIONS_MODEL_LARGE) as any,
-    "chat-model-function": provider(OPENAI_COMPLETIONS_MODEL_FUNCTION) as any,
+    // "chat-model-function": provider(OPENAI_COMPLETIONS_MODEL_FUNCTION) as any,
     // "chat-model-function": openai(OPENAI_COMPLETIONS_MODEL_FUNCTION) as any,
     "chat-model-reasoning": wrapLanguageModel({
       model: provider(OPENAI_COMPLETIONS_MODEL_REASONING) as any,
