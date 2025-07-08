@@ -7,7 +7,7 @@ import { eq } from 'drizzle-orm';
 export async function POST(request: Request) {
   try {
     const session = await auth();
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -39,14 +39,14 @@ export async function POST(request: Request) {
       }
     }
 
-    // Update user
+    // Update user by ID (more secure than email)
     const [updatedUser] = await db
       .update(users)
       .set({
         name: name !== undefined ? name.trim() : undefined,
         image: image !== undefined ? image : undefined,
       })
-      .where(eq(users.email, session.user.email))
+      .where(eq(users.id, session.user.id))
       .returning();
 
     if (!updatedUser) {

@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@/app/(auth)/auth-server';
-import { getUser } from '@/lib/db/queries';
+import { getUserById } from '@/lib/db/queries';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { HistoryTab } from '@/components/profile/history-tab';
@@ -10,12 +10,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 export default async function ProfilePage() {
   const session = await auth();
 
-  if (!session?.user?.email) {
+  if (!session?.user?.id) {
     redirect('/');
   }
 
-  const users = await getUser(session.user.email);
-  const user = users[0];
+  const user = await getUserById(session.user.id);
 
   if (!user) {
     redirect('/');
@@ -51,6 +50,14 @@ export default async function ProfilePage() {
                   />
 
                   <div className="space-y-4">
+                    <div>
+                      <h3 className="text-sm font-medium text-muted-foreground">User ID</h3>
+                      <p className="mt-1 font-mono text-sm break-all">{user.id}</p>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-muted-foreground">Name</h3>
+                      <p className="mt-1">{user.name || 'Not set'}</p>
+                    </div>
                     <div>
                       <h3 className="text-sm font-medium text-muted-foreground">Email</h3>
                       <p className="mt-1 break-all">{user.email}</p>
