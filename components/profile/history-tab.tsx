@@ -1,13 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { useParams } from 'next/navigation';
 import { toast } from 'sonner';
 import useSWR from 'swr';
 import { format } from 'date-fns';
 
 import { fetcher } from '@/lib/utils';
 import type { Chat } from '@/lib/db/schema';
+import type { Message } from 'ai';
 import {
   Dialog,
   DialogContent,
@@ -17,16 +17,42 @@ import {
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Markdown } from '@/components/markdown';
+import { LoaderIcon } from '@/components/icons';
 
 export function HistoryTab() {
-  const { id } = useParams();
   const [selectedChats, setSelectedChats] = useState<string[]>([]);
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [chatDetails, setChatDetails] = useState<{
+    chat: Chat;
+    messages: Message[];
+  } | null>(null);
+  const [isLoadingDetails, setIsLoadingDetails] = useState(false);
 
   const { data: history, isLoading, mutate } = useSWR<Array<Chat>>('/api/history', fetcher, {
     fallbackData: [],
   });
+
+  const handleChatClick = async (chat: Chat) => {
+    setSelectedChat(chat);
+    setIsLoadingDetails(true);
+    setChatDetails(null);
+
+    try {
+      const response = await fetch(`/api/chat?id=${chat.id}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch chat details');
+      }
+      const data = await response.json();
+      setChatDetails(data);
+    } catch (error) {
+      toast.error('Failed to load chat details');
+      console.error('Error fetching chat details:', error);
+    } finally {
+      setIsLoadingDetails(false);
+    }
+  };
 
   const handleDelete = async () => {
     if (selectedChats.length === 0) return;
@@ -113,7 +139,7 @@ export function HistoryTab() {
               />
               <div
                 className="flex-1 cursor-pointer"
-                onClick={() => setSelectedChat(chat)}
+                onClick={() => handleChatClick(chat)}
               >
                 <div className="font-medium">{chat.title}</div>
                 <div className="text-sm text-muted-foreground">
@@ -125,17 +151,55 @@ export function HistoryTab() {
         </div>
       </ScrollArea>
 
-      <Dialog open={!!selectedChat} onOpenChange={() => setSelectedChat(null)}>
-        <DialogContent className="max-w-3xl">
+      <Dialog open={!!selectedChat} onOpenChange={() => {
+        setSelectedChat(null);
+        setChatDetails(null);
+      }}>
+        <DialogContent className="max-w-4xl max-h-[80vh]">
           <DialogHeader>
             <DialogTitle>{selectedChat?.title}</DialogTitle>
           </DialogHeader>
-          <div className="mt-4">
-            {/* Chat content will be added here */}
-            <p className="text-muted-foreground">
-              Chat content will be displayed here
-            </p>
-          </div>
+          <ScrollArea className="max-h-[60vh] mt-4">
+            {isLoadingDetails ? (
+              <div className="flex items-center justify-center py-8">
+                <LoaderIcon size={16} />
+                <span className="ml-2">Loading chat details...</span>
+              </div>
+            ) : chatDetails ? (
+              <div className="space-y-4">
+                {chatDetails.messages.map((message) => (
+                  <div
+                    key={message.id}
+                    className={`flex gap-4 ${
+                      message.role === 'user' ? 'justify-end' : 'justify-start'
+                    }`}
+                  >
+                    <div
+                      className={`max-w-[80%] rounded-lg p-3 ${
+                        message.role === 'user'
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-muted'
+                      }`}
+                    >
+                      <div className="text-xs font-medium mb-2 opacity-70">
+                        {message.role === 'user' ? 'You' : 'Assistant'}
+                      </div>
+                      <div className="text-sm">
+                        <Markdown>{message.content as string}</Markdown>
+                      </div>
+                      <div className="text-xs opacity-50 mt-2">
+                        {message.createdAt ? format(new Date(message.createdAt), 'PPp') : 'Unknown time'}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center text-muted-foreground py-8">
+                Failed to load chat details
+              </div>
+            )}
+          </ScrollArea>
         </DialogContent>
       </Dialog>
 

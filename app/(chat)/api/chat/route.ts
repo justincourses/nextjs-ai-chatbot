@@ -11,10 +11,12 @@ import { systemPrompt } from '@/lib/ai/prompts';
 import {
   deleteChatById,
   getChatById,
+  getMessagesByChatId,
   saveChat,
   saveMessages,
 } from '@/lib/db/queries';
 import {
+  convertToUIMessages,
   generateUUID,
   getMostRecentUserMessage,
   sanitizeResponseMessages,
@@ -129,6 +131,48 @@ export async function POST(request: Request) {
       return 'Oops, an error occured!';
     },
   });
+}
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get('id');
+
+  if (!id) {
+    return new Response('Missing id', { status: 400 });
+  }
+
+  const session = await auth();
+
+  if (!session || !session.user) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
+  try {
+    const chat = await getChatById({ id });
+
+    if (!chat) {
+      return new Response('Chat not found', { status: 404 });
+    }
+
+    if (chat.userId !== session.user.id) {
+      return new Response('Unauthorized', { status: 401 });
+    }
+
+    const messagesFromDb = await getMessagesByChatId({ id });
+    const messages = convertToUIMessages(messagesFromDb).map((message, index) => ({
+      ...message,
+      createdAt: messagesFromDb[index]?.createdAt,
+    }));
+
+    return Response.json({
+      chat,
+      messages,
+    });
+  } catch (error) {
+    return new Response('An error occurred while processing your request', {
+      status: 500,
+    });
+  }
 }
 
 export async function DELETE(request: Request) {
