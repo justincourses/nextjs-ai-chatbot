@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { Pencil, Upload, Link as LinkIcon } from 'lucide-react';
+import { Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -21,6 +21,7 @@ import {
   AvatarImage,
   AvatarFallback,
 } from '@/components/ui/avatar';
+import { AvatarCropDialog } from './avatar-crop-dialog';
 
 interface ProfileEditorProps {
   initialName: string | null;
@@ -32,6 +33,7 @@ export function ProfileEditor({ initialName, initialImage }: ProfileEditorProps)
   const [image, setImage] = useState(initialImage || '');
   const [isNameDialogOpen, setIsNameDialogOpen] = useState(false);
   const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
+  const [isCropDialogOpen, setIsCropDialogOpen] = useState(false);
   const [imageUrl, setImageUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -102,6 +104,10 @@ export function ProfileEditor({ initialName, initialImage }: ProfileEditorProps)
     }
   };
 
+  const handleCroppedImage = async (croppedImageUrl: string) => {
+    await handleImageUpdate(croppedImageUrl);
+  };
+
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -146,7 +152,7 @@ export function ProfileEditor({ initialName, initialImage }: ProfileEditorProps)
       <div className="flex items-center gap-4">
         <div
           className="relative group cursor-pointer"
-          onClick={() => setIsImageDialogOpen(true)}
+          onClick={() => setIsCropDialogOpen(true)}
         >
           <Avatar className="size-24">
             <AvatarImage
@@ -257,6 +263,12 @@ export function ProfileEditor({ initialName, initialImage }: ProfileEditorProps)
           </Tabs>
         </DialogContent>
       </Dialog>
+
+      <AvatarCropDialog
+        open={isCropDialogOpen}
+        onOpenChange={setIsCropDialogOpen}
+        onImageCropped={handleCroppedImage}
+      />
     </div>
   );
 }
