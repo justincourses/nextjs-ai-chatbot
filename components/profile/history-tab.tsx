@@ -6,7 +6,7 @@ import useSWR from 'swr';
 import { format } from 'date-fns';
 
 import { fetcher } from '@/lib/utils';
-import type { Chat } from '@/lib/db/schema';
+import type { Chat, Vote } from '@/lib/db/schema';
 import type { Message } from 'ai';
 import {
   Dialog,
@@ -17,8 +17,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Markdown } from '@/components/markdown';
 import { LoaderIcon } from '@/components/icons';
+import Link from 'next/link';
+import { ExternalLinkIcon } from 'lucide-react';
+import { PreviewMessage } from '@/components/message';
 
 export function HistoryTab() {
   const [selectedChats, setSelectedChats] = useState<string[]>([]);
@@ -29,6 +31,7 @@ export function HistoryTab() {
     messages: Message[];
   } | null>(null);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
+  const [votes, setVotes] = useState<Vote[]>([]);
 
   const { data: history, isLoading, mutate } = useSWR<Array<Chat>>('/api/history', fetcher, {
     fallbackData: [],
@@ -38,14 +41,25 @@ export function HistoryTab() {
     setSelectedChat(chat);
     setIsLoadingDetails(true);
     setChatDetails(null);
+    setVotes([]);
 
     try {
-      const response = await fetch(`/api/chat?id=${chat.id}`);
-      if (!response.ok) {
+      const [chatResponse, votesResponse] = await Promise.all([
+        fetch(`/api/chat?id=${chat.id}`),
+        fetch(`/api/vote?chatId=${chat.id}`)
+      ]);
+
+      if (!chatResponse.ok) {
         throw new Error('Failed to fetch chat details');
       }
-      const data = await response.json();
-      setChatDetails(data);
+
+      const chatData = await chatResponse.json();
+      setChatDetails(chatData);
+
+      if (votesResponse.ok) {
+        const votesData = await votesResponse.json();
+        setVotes(votesData);
+      }
     } catch (error) {
       toast.error('Failed to load chat details');
       console.error('Error fetching chat details:', error);
@@ -155,50 +169,49 @@ export function HistoryTab() {
         setSelectedChat(null);
         setChatDetails(null);
       }}>
-        <DialogContent className="max-w-4xl max-h-[80vh]">
+        <DialogContent className="max-w-4xl max-h-[80vh] backdrop-blur-md bg-background/80">
           <DialogHeader>
-            <DialogTitle>{selectedChat?.title}</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <span>{selectedChat?.title}</span>
+              {selectedChat && (
+                <Link
+                  href={`/chat/${selectedChat.id}`}
+                  className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <ExternalLinkIcon size={14} />
+                  <span>Open full chat</span>
+                </Link>
+              )}
+            </DialogTitle>
           </DialogHeader>
-          <ScrollArea className="max-h-[60vh] mt-4">
-            {isLoadingDetails ? (
-              <div className="flex items-center justify-center py-8">
-                <LoaderIcon size={16} />
-                <span className="ml-2">Loading chat details...</span>
-              </div>
-            ) : chatDetails ? (
-              <div className="space-y-4">
-                {chatDetails.messages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={`flex gap-4 ${
-                      message.role === 'user' ? 'justify-end' : 'justify-start'
-                    }`}
-                  >
-                    <div
-                      className={`max-w-[80%] rounded-lg p-3 ${
-                        message.role === 'user'
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-muted'
-                      }`}
-                    >
-                      <div className="text-xs font-medium mb-2 opacity-70">
-                        {message.role === 'user' ? 'You' : 'Assistant'}
-                      </div>
-                      <div className="text-sm">
-                        <Markdown>{message.content as string}</Markdown>
-                      </div>
-                      <div className="text-xs opacity-50 mt-2">
-                        {message.createdAt ? format(new Date(message.createdAt), 'PPp') : 'Unknown time'}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center text-muted-foreground py-8">
-                Failed to load chat details
-              </div>
-            )}
+          <ScrollArea className="max-h-[60vh] mt-4 pr-4">
+            <div className="pr-2">
+              {isLoadingDetails ? (
+                <div className="flex items-center justify-center py-8">
+                  <LoaderIcon size={16} />
+                  <span className="ml-2">Loading chat details...</span>
+                </div>
+              ) : chatDetails ? (
+                <div className="space-y-6">
+                  {chatDetails.messages.map((message) => (
+                    <PreviewMessage
+                      key={message.id}
+                      chatId={chatDetails.chat.id}
+                      message={message}
+                      isLoading={false}
+                      vote={votes.find((vote) => vote.messageId === message.id)}
+                      setMessages={() => {}} // Read-only mode
+                      reload={async () => null} // Read-only mode
+                      isReadonly={true}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center text-muted-foreground py-8">
+                  Failed to load chat details
+                </div>
+              )}
+            </div>
           </ScrollArea>
         </DialogContent>
       </Dialog>
