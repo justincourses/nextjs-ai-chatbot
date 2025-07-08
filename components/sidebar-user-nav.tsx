@@ -41,10 +41,13 @@ export function SidebarUserNav({ user }: { user: User }) {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent bg-background data-[state=open]:text-sidebar-accent-foreground h-10">
               <Avatar className="size-6">
-                <AvatarImage src={avatarUrl} alt={user.name || user.email || 'User Avatar'} />
+                <AvatarImage
+                  src={avatarUrl}
+                  alt={user?.name || user?.email || "User Avatar"}
+                />
                 <AvatarFallback>{initials}</AvatarFallback>
               </Avatar>
-              <span className="truncate">{user?.email}</span>
+              <span className="truncate">{user?.name || user?.email}</span>
               <ChevronUp className="ml-auto" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
@@ -53,15 +56,15 @@ export function SidebarUserNav({ user }: { user: User }) {
             className="w-[--radix-popper-anchor-width]"
           >
             <DropdownMenuItem asChild>
-              <Link href="/profile" className="cursor-pointer">
-                Profile
+              <Link href="/profile" className="cursor-pointer" title={  user?.id }>
+                Profile ({ user?.email })
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem
               className="cursor-pointer"
-              onSelect={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              onSelect={() => setTheme(theme === "dark" ? "light" : "dark")}
             >
-              {`Toggle ${theme === 'light' ? 'dark' : 'light'} mode`}
+              {`Toggle ${theme === "light" ? "dark" : "light"} mode`}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
