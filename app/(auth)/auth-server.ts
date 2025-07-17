@@ -40,6 +40,7 @@ async function createOAuthUser(user: any) {
 
 const nextAuth = NextAuth({
   ...authConfig,
+  // trustedHosts: ['localhost', '127.0.0.1'], // 已移除，建议用环境变量 AUTH_TRUST_HOST
   // Temporarily disable adapter to restore functionality
   // adapter: DrizzleAdapter(db, {
   //   usersTable: users,
