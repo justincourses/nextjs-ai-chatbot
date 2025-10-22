@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/mo/courses/remote-mcp-server-authless-demo/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
