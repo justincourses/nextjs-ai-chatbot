@@ -28,7 +28,13 @@ import { updateDocument } from '@/lib/ai/tools/update-document';
 import { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
 import { getWeather } from '@/lib/ai/tools/get-weather';
 import { getCurrency } from '@/lib/ai/tools/get-currency';
-import { courseInfoSimple } from '@/lib/ai/tools/course-info-simple';
+import { 
+  howToUse, 
+  searchKnowledgeBase, 
+  searchWordPressPosts, 
+  listFaqDocuments, 
+  getFaqDocument 
+} from '@/lib/ai/tools/mcp-tools';
 
 export const maxDuration = 60;
 
@@ -71,7 +77,7 @@ export async function POST(request: Request) {
         messages,
         maxSteps: 5,
         experimental_activeTools: [
-          "chat-model-reasoning"   // Only enable function calling on reasoning model
+          "chat-model-large"  // Only enable on DeepSeek-V3 (most reliable for function calling on SiliconFlow)
         ].includes(selectedChatModel)
           ? [
               "getWeather",
@@ -79,7 +85,11 @@ export async function POST(request: Request) {
               "createDocument",
               "updateDocument",
               "requestSuggestions",
-              "courseInfoSimple",
+              "howToUse",
+              "searchKnowledgeBase",
+              "searchWordPressPosts",
+              "listFaqDocuments",
+              "getFaqDocument",
             ]
           : [],
         experimental_transform: smoothStream({ chunking: "word" }),
@@ -93,7 +103,11 @@ export async function POST(request: Request) {
             session,
             dataStream,
           }),
-          courseInfoSimple,
+          howToUse,
+          searchKnowledgeBase,
+          searchWordPressPosts,
+          listFaqDocuments,
+          getFaqDocument,
         },
         onFinish: async ({ response, reasoning }) => {
           if (session.user?.id) {

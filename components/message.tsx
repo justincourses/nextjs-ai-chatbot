@@ -17,6 +17,7 @@ import { MessageActions } from './message-actions';
 import { PreviewAttachment } from './preview-attachment';
 import { Weather } from './weather';
 import { Currency } from './currency';
+import { MCPResult } from './mcp-result';
 import equal from 'fast-deep-equal';
 import { cn } from '@/lib/utils';
 import { Button } from './ui/button';
@@ -92,6 +93,85 @@ const PurePreviewMessage = ({
               />
             )}
 
+            {message.toolInvocations && message.toolInvocations.length > 0 && (
+              <div className="flex flex-col gap-4">
+                {message.toolInvocations.map((toolInvocation) => {
+                  const { toolName, toolCallId, state, args } = toolInvocation;
+
+                  if (state === 'result') {
+                    const { result } = toolInvocation;
+
+                    return (
+                      <div key={toolCallId}>
+                        {toolName === 'getWeather' ? (
+                          <Weather weatherAtLocation={result} />
+                        ) : toolName === 'getCurrency' ? (
+                          <Currency currencyData={result} />
+                        ) : toolName === 'createDocument' ? (
+                          <DocumentPreview
+                            isReadonly={isReadonly}
+                            result={result}
+                          />
+                        ) : toolName === 'updateDocument' ? (
+                          <DocumentToolResult
+                            type="update"
+                            result={result}
+                            isReadonly={isReadonly}
+                          />
+                        ) : toolName === 'requestSuggestions' ? (
+                          <DocumentToolResult
+                            type="request-suggestions"
+                            result={result}
+                            isReadonly={isReadonly}
+                          />
+                        ) : ['howToUse', 'searchKnowledgeBase', 'searchWordPressPosts', 'listFaqDocuments', 'getFaqDocument'].includes(toolName) ? (
+                          <MCPResult 
+                            mcpResultData={{
+                              toolName,
+                              args,
+                              result
+                            }}
+                          />
+                        ) : (
+                          <pre>{JSON.stringify(result, null, 2)}</pre>
+                        )}
+                      </div>
+                    );
+                  }
+                  return (
+                    <div
+                      key={toolCallId}
+                      className={cx({
+                        skeleton: ['getWeather', 'getCurrency'].includes(toolName),
+                      })}
+                    >
+                      {toolName === 'getWeather' ? (
+                        <Weather />
+                      ) : toolName === 'getCurrency' ? (
+                        <Currency />
+                      ) : toolName === 'createDocument' ? (
+                        <DocumentPreview isReadonly={isReadonly} args={args} />
+                      ) : toolName === 'updateDocument' ? (
+                        <DocumentToolCall
+                          type="update"
+                          args={args}
+                          isReadonly={isReadonly}
+                        />
+                      ) : toolName === 'requestSuggestions' ? (
+                        <DocumentToolCall
+                          type="request-suggestions"
+                          args={args}
+                          isReadonly={isReadonly}
+                        />
+                      ) : ['howToUse', 'searchKnowledgeBase', 'searchWordPressPosts', 'listFaqDocuments', 'getFaqDocument'].includes(toolName) ? (
+                        <MCPResult />
+                      ) : null}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
             {(message.content || message.reasoning) && mode === 'view' && (
               <div className="flex flex-row gap-2 items-start">
                 {message.role === 'user' && !isReadonly && (
@@ -133,75 +213,6 @@ const PurePreviewMessage = ({
                   setMessages={setMessages}
                   reload={reload}
                 />
-              </div>
-            )}
-
-            {message.toolInvocations && message.toolInvocations.length > 0 && (
-              <div className="flex flex-col gap-4">
-                {message.toolInvocations.map((toolInvocation) => {
-                  const { toolName, toolCallId, state, args } = toolInvocation;
-
-                  if (state === 'result') {
-                    const { result } = toolInvocation;
-
-                    return (
-                      <div key={toolCallId}>
-                        {toolName === 'getWeather' ? (
-                          <Weather weatherAtLocation={result} />
-                        ) : toolName === 'getCurrency' ? (
-                          <Currency currencyData={result} />
-                        ) : toolName === 'createDocument' ? (
-                          <DocumentPreview
-                            isReadonly={isReadonly}
-                            result={result}
-                          />
-                        ) : toolName === 'updateDocument' ? (
-                          <DocumentToolResult
-                            type="update"
-                            result={result}
-                            isReadonly={isReadonly}
-                          />
-                        ) : toolName === 'requestSuggestions' ? (
-                          <DocumentToolResult
-                            type="request-suggestions"
-                            result={result}
-                            isReadonly={isReadonly}
-                          />
-                        ) : (
-                          <pre>{JSON.stringify(result, null, 2)}</pre>
-                        )}
-                      </div>
-                    );
-                  }
-                  return (
-                    <div
-                      key={toolCallId}
-                      className={cx({
-                        skeleton: ['getWeather', 'getCurrency'].includes(toolName),
-                      })}
-                    >
-                      {toolName === 'getWeather' ? (
-                        <Weather />
-                      ) : toolName === 'getCurrency' ? (
-                        <Currency />
-                      ) : toolName === 'createDocument' ? (
-                        <DocumentPreview isReadonly={isReadonly} args={args} />
-                      ) : toolName === 'updateDocument' ? (
-                        <DocumentToolCall
-                          type="update"
-                          args={args}
-                          isReadonly={isReadonly}
-                        />
-                      ) : toolName === 'requestSuggestions' ? (
-                        <DocumentToolCall
-                          type="request-suggestions"
-                          args={args}
-                          isReadonly={isReadonly}
-                        />
-                      ) : null}
-                    </div>
-                  );
-                })}
               </div>
             )}
 

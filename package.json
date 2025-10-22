@@ -20,7 +20,6 @@
     "db:up": "drizzle-kit up"
   },
   "dependencies": {
-    "@ai-sdk/deepseek": "^0.1.12",
     "@ai-sdk/fireworks": "^0.1.8",
     "@ai-sdk/openai": "1.1.9",
     "@ai-sdk/openai-compatible": "^0.1.12",

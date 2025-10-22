@@ -1,4 +1,4 @@
-import { Transform } from 'stream';
+import { Transform } from 'node:stream';
 
 /**
  * Transform stream to fix DeepSeek model compatibility issues
@@ -25,7 +25,7 @@ export function createDeepSeekFixTransform() {
             // Fix DeepSeek tool_calls format issues
             if (data.choices && Array.isArray(data.choices)) {
               data.choices.forEach((choice: any) => {
-                if (choice.delta && choice.delta.tool_calls && Array.isArray(choice.delta.tool_calls)) {
+                if (choice.delta?.tool_calls && Array.isArray(choice.delta.tool_calls)) {
                   choice.delta.tool_calls.forEach((toolCall: any, index: number) => {
                     // Fix null type - should be "function"
                     if (toolCall.type === null || toolCall.type === undefined) {
@@ -53,7 +53,7 @@ export function createDeepSeekFixTransform() {
                 }
                 
                 // Also handle finished tool_calls
-                if (choice.message && choice.message.tool_calls && Array.isArray(choice.message.tool_calls)) {
+                if (choice.message?.tool_calls && Array.isArray(choice.message.tool_calls)) {
                   choice.message.tool_calls.forEach((toolCall: any, index: number) => {
                     if (toolCall.type === null || toolCall.type === undefined) {
                       toolCall.type = 'function';

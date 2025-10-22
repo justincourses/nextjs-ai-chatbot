@@ -4,9 +4,16 @@
 
 本文档介绍如何在 AI 聊天机器人中集成 MCP (Model Context Protocol) 服务器，通过 Server-Sent Events (SSE) 连接获取外部工具和知识库功能。
 
-## MCP 服务器地址
+## MCP 服务器地址与握手
 
 **SSE 端点**: `https://hono-mcp-demo.justincourse.site/sse`
+
+- 首次连接时仅建立到 `/sse` 的 **只读** EventSource。
+- 服务器会通过 `event: endpoint` 发送用于读写的消息端点，例如：  
+  `data: /sse/message?sessionId=<server-session-id>`  
+  此端点用于所有后续的 `tools/*` 调用。
+- 服务器期望 `POST` 请求使用标准 MCP JSON-RPC 负载，无需额外自定义头。
+- 如果直接对 `/mcp` 发起请求会收到 `406 Not Acceptable`。
 
 ## 服务器功能
 
@@ -91,43 +98,55 @@ CREATE TABLE conversations (
 
 ## SSE 连接实现
 
-### 客户端连接示例
+### 客户端握手与调用示例
 
 ```typescript
-// 连接到 MCP SSE 端点
-const eventSource = new EventSource('https://hono-mcp-demo.justincourse.site/sse');
+// Step 1: 建立只读 SSE 连接
+const baseUrl = 'https://hono-mcp-demo.justincourse.site';
+const eventSource = new EventSource(`${baseUrl}/sse`);
 
-eventSource.onopen = (event) => {
-  console.log('MCP SSE 连接已建立');
-};
+let messageEndpoint: string | null = null;
+
+eventSource.addEventListener('endpoint', (event) => {
+  // 服务器返回相对路径：/sse/message?sessionId=...
+  const rawEndpoint = String(event.data || '').trim();
+  messageEndpoint = rawEndpoint.startsWith('http')
+    ? rawEndpoint
+    : `${baseUrl}${rawEndpoint.startsWith('/') ? '' : '/'}${rawEndpoint}`;
+});
 
 eventSource.onmessage = (event) => {
-  const data = JSON.parse(event.data);
-  handleMCPMessage(data);
+  // 常规 MCP 消息（JSON-RPC 响应或通知）
+  const message = JSON.parse(event.data);
+  handleMCPMessage(message);
 };
 
-eventSource.onerror = (error) => {
-  console.error('MCP SSE 连接错误:', error);
-};
-
-// 发送 MCP 请求
+// Step 2: 使用服务器返回的 messageEndpoint 发送工具调用
 async function callMCPTool(toolName: string, parameters: any) {
-  const response = await fetch('https://hono-mcp-demo.justincourse.site/mcp', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
+  if (!messageEndpoint) {
+    throw new Error('MCP message endpoint not ready');
+  }
+
+  const payload = {
+    jsonrpc: '2.0',
+    id: Date.now(),
+    method: 'tools/call',
+    params: {
+      name: toolName,
+      arguments: parameters,
     },
-    body: JSON.stringify({
-      jsonrpc: '2.0',
-      id: Date.now(),
-      method: 'tools/call',
-      params: {
-        name: toolName,
-        arguments: parameters
-      }
-    })
+  };
+
+  const response = await fetch(messageEndpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
   });
-  
+
+  if (!response.ok) {
+    throw new Error(`MCP request failed: ${response.status} ${response.statusText}`);
+  }
+
   return response.json();
 }
 ```
@@ -220,12 +239,12 @@ export async function POST(request: Request) {
 ```typescript
 async function safeMCPCall(toolName: string, parameters: any) {
   try {
-    const result = await callMCPTool(toolName, parameters);
-    
-    if (result.error) {
-      console.error('MCP 工具错误:', result.error);
-      return { error: result.error.message };
-    }
+  const result = await callMCPTool(toolName, parameters);
+  
+  if (result.error) {
+    console.error('MCP 工具错误:', result.error);
+    return { error: result.error.message };
+  }
     
     return result.result;
   } catch (error) {

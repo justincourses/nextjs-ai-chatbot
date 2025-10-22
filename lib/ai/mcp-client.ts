@@ -31,6 +31,8 @@ interface MCPSession {
   id: string;
   eventSource: EventSource | null;
   isConnected: boolean;
+  serverSessionId: string | null;
+  messageEndpoint: string | null;
   pendingRequests: Map<string | number, {
     resolve: (value: any) => void;
     reject: (reason: any) => void;
@@ -82,7 +84,7 @@ export class MCPClient {
     
     if (this.sessions.has(actualSessionId)) {
       const session = this.sessions.get(actualSessionId);
-      if (session?.isConnected) {
+      if (session?.isConnected && session.messageEndpoint) {
         session.lastActivity = Date.now();
         return actualSessionId;
       }
@@ -92,6 +94,8 @@ export class MCPClient {
       id: actualSessionId,
       eventSource: null,
       isConnected: false,
+      serverSessionId: null,
+      messageEndpoint: null,
       pendingRequests: new Map(),
       reconnectAttempts: 0,
       lastActivity: Date.now()
@@ -111,20 +115,45 @@ export class MCPClient {
   private async establishSSEConnection(session: MCPSession): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
-        // 根据 MCP 规范，SSE 连接通常需要身份验证或会话参数
-        const sseUrl = `${this.baseUrl}/sse?session=${session.id}`;
-        
-        session.eventSource = new EventSource(sseUrl);
+        // Close any existing event source before creating a new one
+        if (session.eventSource) {
+          session.eventSource.close();
+        }
 
-        session.eventSource.onopen = () => {
+        const sseUrl = `${this.baseUrl}/sse`;
+        const eventSource = new EventSource(sseUrl);
+        session.eventSource = eventSource;
+        session.isConnected = false;
+        session.serverSessionId = null;
+        session.messageEndpoint = null;
+
+        let resolved = false;
+        const maybeResolve = () => {
+          if (!resolved && session.isConnected && session.messageEndpoint) {
+            resolved = true;
+            clearTimeout(initialTimeout);
+            resolve();
+          }
+        };
+
+        const initialTimeout = setTimeout(() => {
+          if (!resolved) {
+            resolved = true;
+            eventSource.close();
+            reject(new Error('SSE connection timeout'));
+          }
+        }, 10000);
+
+        eventSource.onopen = () => {
           console.log(`MCP SSE connected for session: ${session.id}`);
           session.isConnected = true;
           session.reconnectAttempts = 0;
           session.lastActivity = Date.now();
-          resolve();
+          maybeResolve();
         };
 
-        session.eventSource.onmessage = (event: any) => {
+        eventSource.onmessage = (event: any) => {
+          session.lastActivity = Date.now();
           try {
             const message: MCPMessage = JSON.parse(event.data);
             this.handleSSEMessage(session, message);
@@ -133,36 +162,68 @@ export class MCPClient {
           }
         };
 
-        session.eventSource.onerror = (error: any) => {
+        eventSource.addEventListener('endpoint', (event: MessageEvent) => {
+          const rawEndpoint = typeof event.data === 'string' ? event.data.trim() : '';
+          if (!rawEndpoint) {
+            return;
+          }
+
+          const endpointUrl = rawEndpoint.startsWith('http')
+            ? rawEndpoint
+            : `${this.baseUrl}${rawEndpoint.startsWith('/') ? '' : '/'}${rawEndpoint}`;
+
+          session.messageEndpoint = endpointUrl;
+
+          try {
+            const parsed = new URL(endpointUrl, this.baseUrl);
+            session.serverSessionId = parsed.searchParams.get('sessionId');
+          } catch (error) {
+            console.error('Failed to parse MCP endpoint URL:', error);
+          }
+
+          maybeResolve();
+        });
+
+        eventSource.onerror = (error: any) => {
           console.error(`MCP SSE error for session ${session.id}:`, error);
           session.isConnected = false;
-          
+          session.messageEndpoint = null;
+
+          if (!resolved) {
+            resolved = true;
+            clearTimeout(initialTimeout);
+            eventSource.close();
+            reject(new Error('Failed to establish MCP SSE connection'));
+            return;
+          }
+
           if (session.reconnectAttempts < this.maxReconnectAttempts) {
             session.reconnectAttempts++;
             const delay = Math.min(1000 * Math.pow(2, session.reconnectAttempts), 30000);
             console.log(`Attempting to reconnect in ${delay}ms (attempt ${session.reconnectAttempts})`);
-            
+
             setTimeout(() => {
               this.establishSSEConnection(session).catch(() => {
-                // Reconnection failed, will be handled by the next error event
+                // Reconnection failure will be surfaced by pending requests
               });
             }, delay);
           } else {
-            reject(new Error('Max reconnection attempts reached'));
+            eventSource.close();
+            this.rejectPendingRequests(session, 'Max reconnection attempts reached');
           }
         };
-
-        // Timeout for initial connection
-        setTimeout(() => {
-          if (!session.isConnected) {
-            reject(new Error('SSE connection timeout'));
-          }
-        }, 10000);
-
       } catch (error) {
         reject(error);
       }
     });
+  }
+
+  private rejectPendingRequests(session: MCPSession, reason: string): void {
+    for (const [requestId, pendingRequest] of session.pendingRequests.entries()) {
+      clearTimeout(pendingRequest.timeout);
+      pendingRequest.reject(new Error(reason));
+      session.pendingRequests.delete(requestId);
+    }
   }
 
   private handleSSEMessage(session: MCPSession, message: MCPMessage): void {
@@ -198,6 +259,10 @@ export class MCPClient {
     if (!session || !session.isConnected) {
       throw new Error(`No active MCP session found: ${sessionId}`);
     }
+    const endpoint = session.messageEndpoint;
+    if (!endpoint) {
+      throw new Error(`No active MCP session found: ${sessionId}`);
+    }
 
     const requestId = this.generateRequestId();
     const message: MCPMessage = {
@@ -224,12 +289,14 @@ export class MCPClient {
         timeout
       });
 
-      // Send via HTTP POST since SSE is read-only
-      fetch(`${this.baseUrl}/mcp`, {
+      const targetUrl = endpoint.startsWith('http')
+        ? endpoint
+        : `${this.baseUrl}${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
+
+      fetch(targetUrl, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'X-MCP-Session': sessionId
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(message)
       }).catch((error) => {
@@ -243,6 +310,10 @@ export class MCPClient {
   public async listTools(sessionId: string): Promise<any[]> {
     const session = this.sessions.get(sessionId);
     if (!session || !session.isConnected) {
+      throw new Error(`No active MCP session found: ${sessionId}`);
+    }
+    const endpoint = session.messageEndpoint;
+    if (!endpoint) {
       throw new Error(`No active MCP session found: ${sessionId}`);
     }
 
@@ -265,11 +336,14 @@ export class MCPClient {
         timeout
       });
 
-      fetch(`${this.baseUrl}/mcp`, {
+      const targetUrl = endpoint.startsWith('http')
+        ? endpoint
+        : `${this.baseUrl}${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
+
+      fetch(targetUrl, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'X-MCP-Session': sessionId
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(message)
       }).catch((error) => {
@@ -288,10 +362,7 @@ export class MCPClient {
       }
       
       // Reject all pending requests
-      for (const [requestId, pendingRequest] of session.pendingRequests) {
-        clearTimeout(pendingRequest.timeout);
-        pendingRequest.reject(new Error('Session disconnected'));
-      }
+      this.rejectPendingRequests(session, 'Session disconnected');
       
       this.sessions.delete(sessionId);
       console.log(`MCP session disconnected: ${sessionId}`);
@@ -313,7 +384,7 @@ export class MCPClient {
   public async ensureConnection(sessionId?: string): Promise<string> {
     if (sessionId && this.sessions.has(sessionId)) {
       const session = this.sessions.get(sessionId);
-      if (session?.isConnected) {
+      if (session?.isConnected && session.messageEndpoint) {
         session.lastActivity = Date.now();
         return sessionId;
       }

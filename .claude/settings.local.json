@@ -3,7 +3,8 @@
     "allow": [
       "Read(//Users/mo/courses/remote-mcp-server-authless-demo/**)",
       "Bash(npx tsc:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(npm run lint)"
     ],
     "deny": [],
     "ask": []

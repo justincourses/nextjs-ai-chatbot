@@ -8,30 +8,31 @@ import {
 
 export const DEFAULT_CHAT_MODEL: string = "chat-model-large";
 
-const OPENAI_COMPLETIONS_MODEL_SMALL = "deepseek-ai/DeepSeek-V3";  // DeepSeek V3 with function calling support
-const OPENAI_COMPLETIONS_MODEL_LARGE = "deepseek-ai/DeepSeek-V3";  // DeepSeek V3 with function calling support
-const OPENAI_COMPLETIONS_MODEL_REASONING = "deepseek-ai/DeepSeek-R1";  // DeepSeek R1 with reasoning support
+// Model names from environment variables
+const OPENAI_COMPLETIONS_MODEL_SMALL = process.env.OPENAI_COMPLETIONS_MODEL_SMALL || "doubao-seed-1-6-flash-250615";
+const OPENAI_COMPLETIONS_MODEL_LARGE = process.env.OPENAI_COMPLETIONS_MODEL_LARGE || "doubao-seed-1-6-250615";
+const OPENAI_COMPLETIONS_MODEL_REASONING = process.env.OPENAI_COMPLETIONS_MODEL_REASONING || "doubao-seed-1-6-thinking-250615";
+const OPENAI_COMPLETIONS_MODEL_FUNCTION = process.env.OPENAI_COMPLETIONS_MODEL_FUNCTION || "doubao-seed-1-6-250615";
 
-
-const provider = createOpenAICompatible({
-  name: "llm",
+// Use OpenAI Compatible provider for 火山引擎 (ByteDance Volcengine ARK) Doubao models
+const volcengineProvider = createOpenAICompatible({
+  name: "volcengine-ark",
   apiKey: process.env.OPENAI_COMPLETIONS_API_KEY || "",
   baseURL: process.env.OPENAI_COMPLETIONS_BASE_URL || "",
 });
 
 export const myProvider = customProvider({
   languageModels: {
-    // "chat-model-tiny": provider(OPENAI_COMPLETIONS_MODEL_TINY) as any,
-    "chat-model-small": provider(OPENAI_COMPLETIONS_MODEL_SMALL) as any,
-    "chat-model-large": provider(OPENAI_COMPLETIONS_MODEL_LARGE) as any,
-    // "chat-model-function": provider(OPENAI_COMPLETIONS_MODEL_FUNCTION) as any,
-    // "chat-model-function": openai(OPENAI_COMPLETIONS_MODEL_FUNCTION) as any,
+    // Use Volcengine provider for Doubao models with function calling support
+    "chat-model-small": volcengineProvider(OPENAI_COMPLETIONS_MODEL_SMALL) as any,
+    "chat-model-large": volcengineProvider(OPENAI_COMPLETIONS_MODEL_LARGE) as any,
     "chat-model-reasoning": wrapLanguageModel({
-      model: provider(OPENAI_COMPLETIONS_MODEL_REASONING) as any,
+      model: volcengineProvider(OPENAI_COMPLETIONS_MODEL_REASONING) as any,
       middleware: extractReasoningMiddleware({ tagName: "think" }),
     }),
-    "title-model": provider(OPENAI_COMPLETIONS_MODEL_SMALL) as any,
-    "artifact-model": provider(OPENAI_COMPLETIONS_MODEL_LARGE) as any,
+    // Other models using Volcengine provider
+    "title-model": volcengineProvider(OPENAI_COMPLETIONS_MODEL_SMALL) as any,
+    "artifact-model": volcengineProvider(OPENAI_COMPLETIONS_MODEL_LARGE) as any,
   },
   imageModels: {
     "small-model": openai.image("dall-e-2"),
@@ -46,31 +47,19 @@ interface ChatModel {
 }
 
 export const chatModels: Array<ChatModel> = [
-  // {
-  //   id: "chat-model-tiny",
-  //   name: "Tiny model",
-  //   description: `Model: ${OPENAI_COMPLETIONS_MODEL_TINY}`,
-  // },
   {
     id: "chat-model-small",
     name: "Small model",
-    description: `Model: ${OPENAI_COMPLETIONS_MODEL_SMALL}`,
+    description: `Model: ${OPENAI_COMPLETIONS_MODEL_SMALL} (with function calling)`,
   },
   {
     id: "chat-model-large",
-    name: "Large model",
-    description: `Model: ${OPENAI_COMPLETIONS_MODEL_LARGE}`,
+    name: "Large model", 
+    description: `Model: ${OPENAI_COMPLETIONS_MODEL_LARGE} (with function calling)`,
   },
   {
     id: "chat-model-reasoning",
     name: "Reasoning model",
-    description: `Model: ${OPENAI_COMPLETIONS_MODEL_REASONING}`,
+    description: `Model: ${OPENAI_COMPLETIONS_MODEL_REASONING} (with function calling)`,
   },
-  // Using function calling model
-  // URL: https://console.volcengine.com/ark/region:ark+cn-beijing/model/detail?Id=doubao-pro-32k
-  // {
-  //   id: "chat-model-function",
-  //   name: "Function calling model",
-  //   description: `Model: ${OPENAI_COMPLETIONS_MODEL_FUNCTION}`,
-  // },
 ];
