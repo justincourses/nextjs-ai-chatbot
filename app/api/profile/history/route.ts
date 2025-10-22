@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/app/(auth)/auth-server';
 import { db } from '@/lib/db/db';
 import { chat, message } from '@/lib/db/schema';
-import { eq, inArray } from 'drizzle-orm';
+import { inArray } from 'drizzle-orm';
 
 export async function DELETE(request: Request) {
   try {

@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef } from 'react';
 import Cropper from 'react-easy-crop';
 import { toast } from 'sonner';
-import { Upload, RotateCw, FlipHorizontal, FlipVertical } from 'lucide-react';
+import { Upload, RotateCw, } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -119,7 +119,7 @@ export function AvatarCropDialog({ open, onOpenChange, onImageCropped }: AvatarC
               </div>
               <div className="flex items-center justify-center w-full h-64 border-2 border-dashed border-gray-300 rounded-lg">
                 <div className="text-center">
-                  <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                  <Upload className="mx-auto size-12 text-gray-400" />
                   <p className="mt-2 text-sm text-gray-500">
                     Click above to upload an image or drag and drop
                   </p>
@@ -166,7 +166,7 @@ export function AvatarCropDialog({ open, onOpenChange, onImageCropped }: AvatarC
                     onClick={handleRotate}
                     className="flex items-center gap-2"
                   >
-                    <RotateCw className="h-4 w-4" />
+                    <RotateCw className="size-4" />
                     Rotate
                   </Button>
                   <Button

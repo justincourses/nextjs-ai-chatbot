@@ -2,9 +2,7 @@ import type {
   CoreAssistantMessage,
   CoreToolMessage,
   Message,
-  TextStreamPart,
   ToolInvocation,
-  ToolSet,
 } from 'ai';
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -162,7 +160,7 @@ export function sanitizeResponseMessages({
       content.type === 'tool-call'
         ? toolResultIds.includes(content.toolCallId)
         : content.type === 'text'
-          ? content.text.length > 0
+          ? true  // Keep text content even if empty (e.g., during tool calls)
           : true,
     );
 

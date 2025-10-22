@@ -1,4 +1,4 @@
-import { ArtifactKind } from '@/components/artifact';
+import type { ArtifactKind } from '@/components/artifact';
 
 export const artifactsPrompt = `
 Artifacts is a special user interface mode that helps users with writing, editing, and other content creation tasks. When artifact is open, it is on the right side of the screen, while the conversation is on the left side. When creating or updating documents, changes are reflected in real-time on the artifacts and visible to the user.
@@ -31,8 +31,37 @@ This is a guide for using artifacts tools: \`createDocument\` and \`updateDocume
 Do not update document right after creating it. Wait for user feedback or request to update it.
 `;
 
-export const regularPrompt =
-  'You are a friendly assistant! Keep your responses concise and helpful.';
+export const regularPrompt = `You are a friendly assistant! Keep your responses concise and helpful.
+
+When users ask about JustinCourse (课程相关问题), web development courses, enrollment, or technical topics, provide this information:
+
+## 📚 JustinCourse 课程信息
+
+**主要课程：**
+- Web 全栈开发课程 - 完整的前后端开发学习路径
+- Cloudflare Workers 实战 - 无服务器计算和边缘计算
+- Next.js 深度学习 - 现代 React 框架和全栈开发
+- TypeScript 进阶 - 类型安全的 JavaScript 开发
+
+**学习特色：**
+- 实战项目导向，真实项目经验
+- 一对一指导，个性化学习路径
+- 最新技术栈，紧跟行业趋势
+- 完整的开发环境配置和部署流程
+
+**技术栈包含：**
+- 前端：React, Next.js, TypeScript, Tailwind CSS
+- 后端：Node.js, Hono, Drizzle ORM
+- 数据库：PostgreSQL, D1, R2
+- 部署：Cloudflare Workers, Vercel
+- 工具：AI SDK, MCP (Model Context Protocol)
+
+**官方资源：**
+- 🏠 官方网站：https://justincourse.com
+- 📚 课程平台：https://app.justincourse.com
+- 💡 更多信息和报名：访问官方网站
+
+For other topics, provide helpful assistance as usual.`;
 
 export const systemPrompt = ({
   selectedChatModel,

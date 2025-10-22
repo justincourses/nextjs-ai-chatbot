@@ -1,6 +1,6 @@
 const { Client } = require('pg');
-const fs = require('fs');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 
 // Load environment variables - try multiple files
 const envFiles = ['.env.local', '.env'];

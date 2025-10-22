@@ -28,6 +28,7 @@ import { updateDocument } from '@/lib/ai/tools/update-document';
 import { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
 import { getWeather } from '@/lib/ai/tools/get-weather';
 import { getCurrency } from '@/lib/ai/tools/get-currency';
+import { courseInfoSimple } from '@/lib/ai/tools/course-info-simple';
 
 export const maxDuration = 60;
 
@@ -70,7 +71,7 @@ export async function POST(request: Request) {
         messages,
         maxSteps: 5,
         experimental_activeTools: [
-          "chat-model-reasoning"
+          "chat-model-reasoning"   // Only enable function calling on reasoning model
         ].includes(selectedChatModel)
           ? [
               "getWeather",
@@ -78,6 +79,7 @@ export async function POST(request: Request) {
               "createDocument",
               "updateDocument",
               "requestSuggestions",
+              "courseInfoSimple",
             ]
           : [],
         experimental_transform: smoothStream({ chunking: "word" }),
@@ -91,6 +93,7 @@ export async function POST(request: Request) {
             session,
             dataStream,
           }),
+          courseInfoSimple,
         },
         onFinish: async ({ response, reasoning }) => {
           if (session.user?.id) {
@@ -100,17 +103,20 @@ export async function POST(request: Request) {
                 reasoning,
               });
 
-              await saveMessages({
-                messages: sanitizedResponseMessages.map((message) => {
-                  return {
-                    id: message.id,
-                    chatId: id,
-                    role: message.role,
-                    content: message.content,
-                    createdAt: new Date(),
-                  };
-                }),
-              });
+              // Only save messages if there are any to save
+              if (sanitizedResponseMessages.length > 0) {
+                await saveMessages({
+                  messages: sanitizedResponseMessages.map((message) => {
+                    return {
+                      id: message.id,
+                      chatId: id,
+                      role: message.role,
+                      content: message.content,
+                      createdAt: new Date(),
+                    };
+                  }),
+                });
+              }
             } catch (error) {
               console.error("Failed to save chat", error);
             }

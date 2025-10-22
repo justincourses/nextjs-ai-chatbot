@@ -1,5 +1,5 @@
 const dotenv = require('dotenv');
-const fs = require('fs');
+const fs = require('node:fs');
 
 // 读取 .env 文件
 let envConfig = {};

@@ -8,9 +8,9 @@ import {
 
 export const DEFAULT_CHAT_MODEL: string = "chat-model-large";
 
-const OPENAI_COMPLETIONS_MODEL_SMALL = "deepseek-ai/DeepSeek-R1-0528-Qwen3-8B";
-const OPENAI_COMPLETIONS_MODEL_LARGE = "deepseek-ai/DeepSeek-V3";
-const OPENAI_COMPLETIONS_MODEL_REASONING = 'deepseek-ai/DeepSeek-R1';
+const OPENAI_COMPLETIONS_MODEL_SMALL = "deepseek-ai/DeepSeek-V3";  // DeepSeek V3 with function calling support
+const OPENAI_COMPLETIONS_MODEL_LARGE = "deepseek-ai/DeepSeek-V3";  // DeepSeek V3 with function calling support
+const OPENAI_COMPLETIONS_MODEL_REASONING = "deepseek-ai/DeepSeek-R1";  // DeepSeek R1 with reasoning support
 
 
 const provider = createOpenAICompatible({

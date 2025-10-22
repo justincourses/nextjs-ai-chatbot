@@ -1,6 +1,4 @@
 'use client';
-
-import cx from 'classnames';
 import { format } from 'date-fns';
 
 interface CurrencyData {

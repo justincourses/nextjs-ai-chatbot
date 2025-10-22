@@ -16,7 +16,7 @@ import {
   message,
   vote,
 } from './schema';
-import { ArtifactKind } from '@/components/artifact';
+import type { ArtifactKind } from '@/components/artifact';
 
 // Optionally, if not using email/pass login, you can
 // use the Drizzle adapter for Auth.js / NextAuth
@@ -120,10 +120,16 @@ export async function getChatById({ id }: { id: string }) {
 
 export async function saveMessages({ messages }: { messages: Array<Message> }) {
   try {
+    // Check if there are messages to save
+    if (!messages || messages.length === 0) {
+      console.warn('saveMessages called with empty messages array');
+      return [];
+    }
+    
     return await db.insert(message).values(messages);
   } catch (error) {
     console.error('Failed to save messages in database', error);
-    console.error('Message data causing error:', JSON.stringify(messages, null, 2));
+    console.error('Message data causing error:', messages);
     throw error;
   }
 }
